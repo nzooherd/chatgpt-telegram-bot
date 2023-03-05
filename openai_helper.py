@@ -1,4 +1,6 @@
 import logging
+from typing import Generator, Iterator
+
 import openai
 
 
@@ -18,7 +20,7 @@ class OpenAIHelper:
         self.sessions: dict[int: list] = dict() # {chat_id: history}
 
 
-    def get_chat_response(self, chat_id: int, query: str) -> str:
+    def get_chat_response(self, chat_id: int, query: str) -> Iterator[str]:
         """
         Gets a response from the GPT-3 model.
         :param chat_id: The chat ID
@@ -31,7 +33,7 @@ class OpenAIHelper:
 
             self.__add_to_history(chat_id, role="user", content=query)
 
-            response = openai.ChatCompletion.create(
+            return openai.ChatCompletion.create(
                 model=self.config['model'],
                 messages=self.sessions[chat_id],
                 temperature=self.config['temperature'],
@@ -39,32 +41,33 @@ class OpenAIHelper:
                 max_tokens=self.config['max_tokens'],
                 presence_penalty=self.config['presence_penalty'],
                 frequency_penalty=self.config['frequency_penalty'],
+                stream=True
             )
 
-            if len(response.choices) > 0:
-                answer = ''
+            #if len(response.choices) > 0:
+            #    answer = ''
 
-                if len(response.choices) > 1 and self.config['n_choices'] > 1:
-                    for index, choice in enumerate(response.choices):
-                        if index == 0:
-                            self.__add_to_history(chat_id, role="assistant", content=choice['message']['content'])
-                        answer += f'{index+1}\u20e3\n'
-                        answer += choice['message']['content']
-                        answer += '\n\n'
-                else:
-                    answer = response.choices[0]['message']['content']
-                    self.__add_to_history(chat_id, role="assistant", content=answer)
+            #    if len(response.choices) > 1 and self.config['n_choices'] > 1:
+            #        for index, choice in enumerate(response.choices):
+            #            if index == 0:
+            #                self.__add_to_history(chat_id, role="assistant", content=choice['message']['content'])
+            #            answer += f'{index+1}\u20e3\n'
+            #            answer += choice['message']['content']
+            #            answer += '\n\n'
+            #    else:
+            #        answer = response.choices[0]['message']['content']
+            #        self.__add_to_history(chat_id, role="assistant", content=answer)
 
-                if self.config['show_usage']:
-                    answer += "\n\n---\n" \
-                              f"💰 Tokens used: {str(response.usage['total_tokens'])}" \
-                              f" ({str(response.usage['prompt_tokens'])} prompt," \
-                              f" {str(response.usage['completion_tokens'])} completion)"
+            #    if self.config['show_usage']:
+            #        answer += "\n\n---\n" \
+            #                  f"💰 Tokens used: {str(response.usage['total_tokens'])}" \
+            #                  f" ({str(response.usage['prompt_tokens'])} prompt," \
+            #                  f" {str(response.usage['completion_tokens'])} completion)"
 
-                return answer
-            else:
-                logging.error('No response from GPT-3')
-                return "⚠️ _An error has occurred_ ⚠️\nPlease try again in a while."
+            #    return answer
+            #else:
+            #    logging.error('No response from GPT-3')
+            #    return "⚠️ _An error has occurred_ ⚠️\nPlease try again in a while."
 
         except openai.error.RateLimitError as e:
             logging.exception(e)

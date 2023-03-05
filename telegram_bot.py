@@ -1,5 +1,6 @@
 import logging
 import os
+from random import random
 
 import telegram.constants as constants
 from telegram import Update
@@ -156,12 +157,39 @@ class ChatGPT3TelegramBot:
 
         await context.bot.send_chat_action(chat_id=chat_id, action=constants.ChatAction.TYPING)
         response = self.openai.get_chat_response(chat_id=chat_id, query=update.message.text)
-        await context.bot.send_message(
-            chat_id=chat_id,
-            reply_to_message_id=update.message.message_id,
-            text=response,
-            parse_mode=constants.ParseMode.MARKDOWN
-        )
+
+        text = ""
+        message_id = None
+        for rep in response:
+            try:
+                cur_text = rep["choices"][0]["delta"]["content"]
+                text += cur_text
+                if random() > 0.2:
+                    continue
+                if not message_id:
+                    message_id = (await context.bot.send_message(
+                            chat_id=chat_id,
+                            reply_to_message_id=update.message.message_id,
+                            text=text,
+                            parse_mode=constants.ParseMode.MARKDOWN
+                    )).message_id
+                else:
+                    await context.bot.edit_message_text(
+                        chat_id=chat_id,
+                        message_id=message_id,
+                        text=text,
+                        parse_mode=constants.ParseMode.MARKDOWN,
+                    )
+            except Exception as e:
+                pass
+
+        if text and message_id:
+            await context.bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=message_id,
+                text=text,
+                parse_mode=constants.ParseMode.MARKDOWN,
+            )
 
     async def send_disallowed_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """

@@ -54,7 +54,7 @@ class TelegramUserApp:
 
             self = cls.telegram_user_app
             if not self._check_need_polish(event) or not self._check_allow_polish(event):
-                return func(cls, *args, **kwargs)
+                return await func(cls, *args, **kwargs)
             await self._polish_do(event)
             return await func(cls, *args, **kwargs)
         return wrapped

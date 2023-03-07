@@ -9,6 +9,9 @@ from telethon.events import NewMessage
 from openai_helper import OpenAIHelper
 from pydub import AudioSegment
 
+from telegram_chat.telegram_user import TelegramUserApp
+
+
 class TelegramBotApp:
     """
     Class representing a Chat-GPT3 Telegram Bot.
@@ -26,6 +29,10 @@ class TelegramBotApp:
             .start(bot_token=config["token"])
         self.disallowed_message = "Sorry, you are not allowed to use this bot. You can check out the source code at " \
                                   "https://github.com/n3d1117/chatgpt-telegram-bot"
+
+    def add_decorator(self, **kwargs):
+        for key, value in kwargs.items():
+            self.__setattr__(key, value)
 
     async def help(self, event: NewMessage.Event) -> None:
         """
@@ -142,6 +149,7 @@ class TelegramBotApp:
             if os.path.exists(filename_ogg):
                 os.remove(filename_ogg)
 
+    @TelegramUserApp.polish_api
     async def prompt(self, event: NewMessage.Event):
         """
         React to incoming messages and respond accordingly.
@@ -157,7 +165,7 @@ class TelegramBotApp:
 
         async with self.client.action(chat, "typing", delay=5):
             await asyncio.sleep(0.1)
-            response = self.openai.get_chat_response(chat_id=chat_id, query=event.message.text, stream=True)
+            response = self.openai.get_chat_response(chat_id=chat_id, function="assistant", query=event.message.text, stream=True)
 
             text = ""
             message = None

@@ -4,7 +4,9 @@ import os
 from dotenv import load_dotenv
 
 from openai_helper import OpenAIHelper
-from telegram_bot import ChatGPT3TelegramBot
+from telegram_chat.telegram_bot import TelegramBotApp
+
+from telegram_chat.telegram_user import TelegramUserApp
 
 
 def main():
@@ -58,15 +60,26 @@ def main():
         'image_size': '512x512'
     }
 
-    telegram_config = {
+    telegram_bot_config = {
         'token': os.environ['TELEGRAM_BOT_TOKEN'],
         'allowed_user_ids': os.environ.get('ALLOWED_TELEGRAM_USER_IDS', '*'),
-        'proxy': os.environ.get('PROXY', None)
+        'proxy': os.environ.get('PROXY', None),
+        "telegram_app_id": int(os.environ['TELEGRAM_APP_ID']),
+        "telegram_app_hash": os.environ['TELEGRAM_APP_HASH'],
+    }
+
+    telegram_user_config = {
+        "telegram_app_id": int(os.environ['TELEGRAM_APP_ID']),
+        "telegram_app_hash": os.environ['TELEGRAM_APP_HASH'],
+        'token': os.environ['TELEGRAM_BOT_TOKEN'],
     }
 
     # Setup and run ChatGPT and Telegram bot
     openai_helper = OpenAIHelper(config=openai_config)
-    telegram_bot = ChatGPT3TelegramBot(config=telegram_config, openai=openai_helper)
+
+    telegram_user_app = TelegramUserApp(telegram_user_config, openai_helper)
+    telegram_bot = TelegramBotApp(config=telegram_bot_config, openai=openai_helper)
+    telegram_bot.add_decorator(telegram_user_app=telegram_user_app)
     telegram_bot.run()
 
 

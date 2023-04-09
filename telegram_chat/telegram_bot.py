@@ -262,5 +262,5 @@ class TelegramBotApp:
         self.client.on(events.NewMessage(pattern='/mode'))(self.get_mode)
         self.client.on(events.NewMessage(pattern='/auto_reset'))(self.auto_reset_mode)
         self.client.on(events.NewMessage(pattern='/cancel_auto_reset'))(self.cancel_auto_reset_mode)
-        self.client.on(events.NewMessage(pattern=lambda x: not x.starsWith("/")))(self.prompt)
+        self.client.on(events.NewMessage(pattern=lambda x: not x.startswith("/")))(self.prompt)
         self.client.run_until_disconnected()

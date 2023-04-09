@@ -9,6 +9,7 @@ from telethon.events import NewMessage
 from openai_helper import OpenAIHelper
 from pydub import AudioSegment
 
+from telegram_chat.telegram_mode import TelegramMode
 from telegram_chat.telegram_user import TelegramUserApp
 
 
@@ -30,9 +31,18 @@ class TelegramBotApp:
         self.disallowed_message = "Sorry, you are not allowed to use this bot. You can check out the source code at " \
                                   "https://github.com/n3d1117/chatgpt-telegram-bot"
 
+        self.mode = TelegramMode()
+
+
     def add_decorator(self, **kwargs):
         for key, value in kwargs.items():
             self.__setattr__(key, value)
+
+    async def get_mode(self, event: NewMessage.Event) -> None:
+        """
+        Return current modes
+        """
+        await self.client.send_message(event.chat_id, str(self.mode))
 
     async def help(self, event: NewMessage.Event) -> None:
         """
@@ -57,7 +67,30 @@ class TelegramBotApp:
 
         chat_id = event.chat_id
         self.openai.reset_chat_history(chat_id=chat_id)
-        await event.send_message(chat_id=chat_id, text='Done!')
+        await self.client.send_message(chat_id, 'Done!')
+
+    async def auto_reset_mode(self, event: NewMessage.Event):
+        """
+        Auto reset conversation
+        """
+        if not self.is_allowed(event):
+            logging.warning(f'User {event.chat.username} is not allowed to reset the conversation')
+            await self.send_disallowed_message(event)
+            return
+
+        logging.info(f'Reset mode for user {event.chat.username}...')
+
+        self.mode.auto_reset_mode()
+        await self.client.send_message(event.chat_id, 'Auto Reset Mode Start~')
+
+    async def cancel_auto_reset_mode(self, event: NewMessage.Event):
+        """
+        Cancel auto reset conversation
+        """
+        if self.is_allowed(event):
+            logging.info(f'Cancel reset mode for user {event.chat.username}...')
+            self.mode.cancel_auto_reset_mode()
+            await self.client.send_message(event.chat_id, 'Cancel Auto Reset Mode~')
 
     #async def image(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
     #    """
@@ -194,6 +227,9 @@ class TelegramBotApp:
                     message=text,
                 )
 
+        if self.mode.is_auto_reset():
+            self.openai.reset_chat_history(chat_id=chat_id)
+
     async def send_disallowed_message(self, event: NewMessage.Event):
         """
         Sends the disallowed message to the user.
@@ -222,5 +258,9 @@ class TelegramBotApp:
         """
         Runs the bot indefinitely until the user presses Ctrl+C
         """
-        self.client.on(events.NewMessage())(self.prompt)
+        self.client.on(events.NewMessage(pattern='/reset'))(self.reset)
+        self.client.on(events.NewMessage(pattern='/mode'))(self.get_mode)
+        self.client.on(events.NewMessage(pattern='/auto_reset'))(self.auto_reset_mode)
+        self.client.on(events.NewMessage(pattern='/cancel_auto_reset'))(self.cancel_auto_reset_mode)
+        self.client.on(events.NewMessage(pattern=lambda x: not x.starsWith("/")))(self.prompt)
         self.client.run_until_disconnected()

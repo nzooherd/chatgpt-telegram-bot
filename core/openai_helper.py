@@ -18,7 +18,7 @@ class OpenAIHelper:
         openai.proxy = config['proxy']
         self.config = config
         self.sessions: dict[int: dict[str: list]] = dict() # {chat_id: history}
-        self.functions = {"assistant", "polish", "translate"}
+        self.functions = {"assistant", "polish", "translate", "diction"}
 
     def get_function(self) -> str:
         # TODO

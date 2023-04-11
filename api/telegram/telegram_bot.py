@@ -6,11 +6,11 @@ from random import random
 from telethon import TelegramClient, events
 from telethon.events import NewMessage
 
-from openai_helper import OpenAIHelper
+from core.openai_helper import OpenAIHelper
 from pydub import AudioSegment
 
-from telegram_chat.telegram_mode import TelegramMode
-from telegram_chat.telegram_user import TelegramUserApp
+from api.telegram.telegram_mode import TelegramMode
+from api.telegram.telegram_user import TelegramUserApp
 
 
 class TelegramBotApp:

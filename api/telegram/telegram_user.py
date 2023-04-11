@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Time    : 3/6/2023
 # @Author  : nzooherd
-# @File    : telegram_user.py.py
+# @File    : telegram_user.py
 # @Software: PyCharm
-import asyncio
 import functools
 from typing import Callable
 
@@ -11,7 +10,7 @@ import socks
 from telethon import TelegramClient
 from telethon.events import NewMessage
 
-from openai_helper import OpenAIHelper
+from core.openai_helper import OpenAIHelper
 
 
 class TelegramUserApp:

@@ -1,12 +1,14 @@
 import logging
 import os
 
+import cherrypy
+import multiprocess as multiprocess
 from dotenv import load_dotenv
 
-from openai_helper import OpenAIHelper
-from telegram_chat.telegram_bot import TelegramBotApp
-
-from telegram_chat.telegram_user import TelegramUserApp
+from api.web.query import DictionApp
+from core.openai_helper import OpenAIHelper
+from api.telegram.telegram_bot import TelegramBotApp
+from api.telegram.telegram_user import TelegramUserApp
 
 
 def main():
@@ -77,9 +79,17 @@ def main():
     # Setup and run ChatGPT and Telegram bot
     openai_helper = OpenAIHelper(config=openai_config)
 
+    cherrypy.config.update(".\\resources\\web_api.ini")
+
+    def web_api():
+        cherrypy.config.update(".\\resources\\web_api.ini")
+        cherrypy.quickstart(DictionApp(openai_helper))
+    multiprocess.Process(target=web_api).start()
+
     telegram_user_app = TelegramUserApp(telegram_user_config, openai_helper)
     telegram_bot = TelegramBotApp(config=telegram_bot_config, openai=openai_helper)
     telegram_bot.add_decorator(telegram_user_app=telegram_user_app)
+
     telegram_bot.run()
 
 

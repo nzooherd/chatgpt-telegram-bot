@@ -11,6 +11,4 @@ RUN pip install --user poetry -i https://pypi.tuna.tsinghua.edu.cn/simple
 WORKDIR /home/appuser/app
 COPY . .
 COPY .env .
-RUN poetry install
-
-CMD ["python", "main.py"]
+RUN poetry install  --no-interaction --no-ansi --no-root

@@ -79,10 +79,11 @@ def main():
     # Setup and run ChatGPT and Telegram bot
     openai_helper = OpenAIHelper(config=openai_config)
 
-    cherrypy.config.update(".\\resources\\web_api.ini")
-
     def web_api():
-        cherrypy.config.update(".\\resources\\web_api.ini")
+        cherrypy.config.update({
+                'server.socket_host': '0.0.0.0',
+                'server.socket_port': 5000,
+        })
         cherrypy.quickstart(DictionApp(openai_helper))
     multiprocess.Process(target=web_api).start()
 

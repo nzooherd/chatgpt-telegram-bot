@@ -11,10 +11,17 @@ python = "^3.8"
 pydub = "^0.25.1"
 telethon = "^1.28.2"
 socks = "^0"
-python-dotenv = {version = "^1.0.0", source = "pypi"}
-openai = {version = "^0.27.4", source = "pypi"}
+python-dotenv = {version = "^1.0.0", source = "tsinghua"}
+openai = {version = "^0.27.4", source = "tsinghua"}
 multiprocess = "^0.70.14"
+cherrypy = "^18.8.0"
 
+
+[[tool.poetry.source]]
+name = "tsinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+secondary = false
 
 [build-system]
 requires = ["poetry-core"]

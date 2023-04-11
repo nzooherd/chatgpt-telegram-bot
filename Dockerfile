@@ -12,3 +12,5 @@ WORKDIR /home/appuser/app
 COPY . .
 COPY .env .
 RUN poetry install  --no-interaction --no-ansi --no-root
+
+CMD ["poetry", "run", "python", "main.py"]
